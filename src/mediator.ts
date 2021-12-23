@@ -5,7 +5,7 @@ import { Axis, DraggableInfo, ElementX, GhostInfo, IContainer, MousePosition, Po
 import './polyfills';
 import { addCursorStyleToBody, addStyleToHead, removeStyle } from './styles';
 import * as Utils from './utils';
-import { ContainerOptions } from './exportTypes';
+import { ContainerOptions, CreateGhostElement } from './exportTypes';
 
 const grabEvents = ['mousedown', 'touchstart'];
 const moveEvents = ['mousemove', 'touchmove'];
@@ -77,7 +77,7 @@ function getGhostParent() {
   }
 }
 
-function getGhostElement(wrapperElement: HTMLElement, { x, y }: Position, container: IContainer, cursor: string): GhostInfo {
+function getGhostElement(wrapperElement: HTMLElement, { x, y }: Position, container: IContainer, cursor: string, factory: CreateGhostElement): GhostInfo {
   const wrapperRect = wrapperElement.getBoundingClientRect();
   const { left, top, right, bottom } = wrapperRect;
 
@@ -85,13 +85,13 @@ function getGhostElement(wrapperElement: HTMLElement, { x, y }: Position, contai
 
   const midX = wrapperVisibleRect.left + (wrapperVisibleRect.right - wrapperVisibleRect.left) / 2;
   const midY = wrapperVisibleRect.top + (wrapperVisibleRect.bottom - wrapperVisibleRect.top) / 2;
-  const ghost: HTMLElement = wrapperElement.cloneNode(true) as HTMLElement;
+  const ghost = factory(wrapperElement, { x, y }, container, cursor);
   ghost.style.zIndex = '1000';
   ghost.style.boxSizing = 'border-box';
   ghost.style.position = 'fixed';
   ghost.style.top = '0px';
   ghost.style.left = '0px';
-  ghost.style.transform = null;
+  ghost.style.transform = null as any;
   ghost.style.removeProperty('transform');
 
   if (container.shouldUseTransformForGhost()) {
@@ -577,7 +577,8 @@ function initiateDrag(position: MousePosition, cursor: string) {
       grabbedElement,
       { x: position.clientX, y: position.clientY },
       draggableInfo.container,
-      cursor
+      cursor,
+      container.getOptions().createGhostElement!,
     );
     draggableInfo.position = {
       x: position.clientX + ghostInfo.centerDelta.x,

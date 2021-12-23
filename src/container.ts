@@ -319,7 +319,7 @@ function drawDropPlaceholder({ layout, element, getOptions }: ContainerProps) {
 
           dropPlaceholderContainer.appendChild(flex);
           flex.appendChild(innerElement);
-          layout.setSize(dropPlaceholderContainer.style, elementSize + 'px');
+          layout.setSize(dropPlaceholderContainer, elementSize + 'px');
 
           dropPlaceholderContainer.style.pointerEvents = 'none';
 
@@ -331,7 +331,7 @@ function drawDropPlaceholder({ layout, element, getOptions }: ContainerProps) {
         }
 
         if (prevAddedIndex !== addedIndex && shadowBeginEnd.dropArea) {
-           layout.setBegin(dropPlaceholderContainer.style, (shadowBeginEnd.dropArea.begin) - layout.getBeginEndOfContainer().begin + 'px');
+           layout.setBegin(dropPlaceholderContainer, (shadowBeginEnd.dropArea.begin) - layout.getBeginEndOfContainer().begin + 'px');
         }
         prevAddedIndex = addedIndex;
 
@@ -410,7 +410,7 @@ function handleInsertionSizeChange({ element, draggables, layout, getOptions }: 
             strectherElement = window.document.createElement('div') as HTMLElement;
             strectherElement.className = stretcherElementClass + ' ' + getOptions().orientation;
             const stretcherSize = draggables.length > 0 ? elementSize + lastDraggableEnd - containerEnd : elementSize;
-            layout.setSize(strectherElement.style, `${stretcherSize}px`);
+            layout.setSize(strectherElement, `${stretcherSize}px`);
             element.appendChild(strectherElement);
             element[stretcherElementInstance] = strectherElement;
             return {

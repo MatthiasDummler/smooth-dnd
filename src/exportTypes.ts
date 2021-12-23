@@ -1,3 +1,5 @@
+import { IContainer, Position } from "./interfaces";
+
 export interface SmoothDnD {
 	dispose: () => void;
 	setOptions: (options: ContainerOptions, merge?: boolean) => void;	
@@ -34,7 +36,9 @@ export type DragStartCallback = Callback<DragStartParams>;
 export type DragEndCallback = Callback<DragEndParams>;
 export type OnDropCallback = Callback<DropResult>;
 export type OnDropReadyCallback = Callback<DropResult>;
+export type OnStyleContainerCallback = Callback<{property: string, value: string | null, element: HTMLElement}>;
 
+export type CreateGhostElement = (wrapperElement: HTMLElement, position: Position, container: IContainer, cursor: string) => HTMLElement;
 
 export interface ContainerOptions {
 	behaviour?: 'move' | 'copy' | 'drop-zone' | 'contain';
@@ -50,6 +54,7 @@ export interface ContainerOptions {
 	dropClass?: string;
 	onDragStart?: DragStartCallback;
 	onDrop?: OnDropCallback;
+	onStyleContainer?: OnStyleContainerCallback;
 	getChildPayload?: (index: number) => any;
 	shouldAnimateDrop?: (sourceContainerOptions: ContainerOptions, payload: any) => boolean;
 	shouldAcceptDrop?: (sourceContainerOptions: ContainerOptions, payload: any) => boolean;
@@ -59,5 +64,6 @@ export interface ContainerOptions {
 	removeOnDropOut?: boolean;
 	getGhostParent?: () => HTMLElement;
 	onDragEnd?: DragEndCallback;
+	createGhostElement?: CreateGhostElement;
 	dropPlaceholder?: DropPlaceholderOptions | boolean;	
 }

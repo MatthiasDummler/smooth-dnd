@@ -129,7 +129,7 @@ export interface LayoutManager {
   setVisibility: (element: ElementX, isVisible: boolean) => void;
   isVisible: (element: ElementX) => boolean;
   isInVisibleRect: (x: number, y: number) => boolean;
-  setSize: (element: HTMLElement | CSSStyleDeclaration, size: string) => void;
+  setSize: (element: HTMLElement, size: string) => void;
   getTopLeftOfElementBegin: (begin: number) => {
     top: number;
     left: number;
@@ -140,5 +140,5 @@ export interface LayoutManager {
   invalidate: () => void;
   invalidateRects: () => void;
   getPosition: (position: Position) => Rect;
-  setBegin: (style: CSSStyleDeclaration, value: string) => void;
+  setBegin: (element: HTMLElement, value: string) => void;
 }

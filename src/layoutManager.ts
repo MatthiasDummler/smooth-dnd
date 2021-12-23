@@ -1,5 +1,5 @@
-import { extraSizeForInsertion, translationValue, visibilityValue } from './constants';
-import { Dictionary, ElementX, OffsetSize, Orientation, Position, Rect, LayoutManager } from './interfaces';
+import { containerInstance, extraSizeForInsertion, translationValue, visibilityValue } from './constants';
+import { Dictionary, ElementX, OffsetSize, Orientation, Position, Rect, LayoutManager, IContainer } from './interfaces';
 import * as Utils from './utils';
 
 export interface PropMap {
@@ -40,14 +40,18 @@ const verticalMap: PropMap = {
 	}
 };
 
-function orientationDependentProps(map: PropMap) {
+function orientationDependentProps(map: PropMap, emit?: (element: HTMLElement, property: string, value: string) => void) {
 	function get(obj: Dictionary, prop: string) {
 		const mappedProp = map[prop];
 		return obj[mappedProp || prop];
 	}
 
-	function set(obj: Dictionary, prop: string, value: any) {
-		obj[map[prop]] = map.setters[prop] ? map.setters[prop](value) : value;
+	function set(obj: Dictionary, prop: string, value: any, element?: HTMLElement) {
+		const newValue = map.setters[prop] ? map.setters[prop](value) : value;
+		obj[map[prop]] = newValue;
+		if (emit && element) {
+			emit(element, map[prop], newValue);
+		}
 	}
 
 	return { get, set };
@@ -57,8 +61,17 @@ function orientationDependentProps(map: PropMap) {
 
 export default function layoutManager(containerElement: ElementX, orientation: Orientation, _animationDuration: number): LayoutManager {
 	containerElement[extraSizeForInsertion] = 0;
+
+	function emit(element: HTMLElement | PropMap, property: string, value: string | null) {
+		const container: IContainer = containerElement[containerInstance];
+		const fn = container.getOptions().onStyleContainer;
+		if (fn && element instanceof HTMLElement) { 
+			fn({ element, property, value });
+		}
+	}
+
 	const map = orientation === 'horizontal' ? horizontalMap : verticalMap;
-	const propMapper = orientationDependentProps(map);
+	const propMapper = orientationDependentProps(map, emit);
 	const values: Dictionary = {
 		translation: 0
 	};
@@ -142,8 +155,8 @@ export default function layoutManager(containerElement: ElementX, orientation: O
 		};
 	}
 
-	function setSize(element: HTMLElement | CSSStyleDeclaration, size: string) {
-		propMapper.set(element, 'setSize', size);
+	function setSize(element: HTMLElement, size: string) {
+		propMapper.set(element.style, 'setSize', size, element);
 	}
 
 	function getAxisValue(position: Position) {
@@ -153,8 +166,9 @@ export default function layoutManager(containerElement: ElementX, orientation: O
 	function setTranslation(element: ElementX, translation: number) {
 		if (!translation) {
 			element.style.removeProperty('transform');
+			emit(element, 'transform', null);
 		} else {
-			propMapper.set(element.style, 'translate', translation);
+			propMapper.set(element.style, 'translate', translation, element);
 		}
 		element[translationValue] = translation;
 	}
@@ -167,8 +181,10 @@ export default function layoutManager(containerElement: ElementX, orientation: O
 		if (element[visibilityValue] === undefined || element[visibilityValue] !== isVisible) {
 			if (isVisible) {
 				element.style.removeProperty('visibility');
+				emit(element, 'visibility', null);
 			} else {
 				element.style.visibility = 'hidden';
+				emit(element, 'visibility', 'hidden');
 			}
 			element[visibilityValue] = isVisible;
 		}
@@ -219,7 +235,7 @@ export default function layoutManager(containerElement: ElementX, orientation: O
 	}
 
 	function setScrollValue(element: HTMLElement, val: number) {
-		return propMapper.set(element, 'scrollValue', val);
+		return propMapper.set(element, 'scrollValue', val, element);
 	}
 
 	function getPosition(position: Position) {
@@ -230,8 +246,8 @@ export default function layoutManager(containerElement: ElementX, orientation: O
 		invalidateContainerRectangles(containerElement);
 	}
 
-	function setBegin(style: CSSStyleDeclaration, value: string) {
-		propMapper.set(style, 'begin', value);
+	function setBegin(element: HTMLElement, value: string) {
+		propMapper.set(element.style, 'begin', value, element);
 	}
 
 	return {
